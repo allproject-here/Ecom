@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Bootstrap demo</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" >
+	<style type="text/css">
+		
+		.CategoryList{
+			margin: 0px;
+			padding: 0px;
+		}
+		.CategoryList li{
+			list-style: none;
+		}
+		.card img{
+			width: 100%;
+			height: 200px;
+		}
+	</style>
+</head>
+<body>
+	<h1 class="text-center py-5">Our Product</h1>
+
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-3">
+				<div class="pb-3">
+					<h2>Category</h2>
+					<ul class="CategoryList">
+						
+						
+					</ul>
+				</div>
+
+				<div class="pb-3 priceList">
+					<h2>Price</h2>
+					<div class="row">
+						<span class="col-6"></span>      	<span class="col-6"></span>
+					</div> 
+					<input type="range">
+					<span></span>
+				</div>
+
+				<div class="py-3">
+					<h2>Rating</h2>
+					<select class="form-select" >
+						<option value="">Select Rating</option>
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option value="3">3</option>
+						<option value="4">4</option>
+						<option value="5">5</option>
+
+					</select>
+				</div>
+			</div>
+			<div class="col-lg-9">
+				<div class="row gy-3" id="productDiv">
+					
+
+
+				</div>
+
+				<div class="row py-4 ">
+					<nav aria-label="...">
+						<ul class="pagination pagination-md justify-content-center">
+						
+						 
+						 
+						</ul>
+					  </nav>
+				</div>
+			</div>	
+		</div>
+	</div>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" ></script>
+	<script>
+		
+
+		
+
+		let productDiv=document.querySelector("#productDiv");
+		let CategoryList=document.querySelector(".CategoryList");
+		// let pagination=document.querySelector(".pagination");
+		let priceList=document.querySelectorAll(".priceList span");
+		let select=document.querySelector("select");
+		let rangeInput=document.querySelector("input[type='range']")
+		let allCat=[]
+		let maxValue;
+		let minValue;
+
+
+		let displayProduct=async (allCheckBoxChecked=[],price='',rating='')=>{
+			console.log(allCheckBoxChecked,price)
+			
+			console.log(allCheckBoxChecked)
+			productDiv.innerHTML=''
+		
+			let apiUrl=`https://dummyjson.com/products?limit=100` ;//APIURL
+			let fetcData=await fetch(apiUrl); //FETCH
+			let FinalData=await fetcData.json(); //JSON
+
+
+			let AllProducts=await FinalData.products;  
+			
+			maxValue=AllProducts[0].price;
+			minValue=AllProducts[0].price;
+
+
+			AllProducts.forEach(element => {
+				if(maxValue<element.price){
+					maxValue=element.price;
+				}
+
+				if(minValue>element.price){
+					minValue=element.price;
+				}
+				if(!allCat.includes(element.category) ){
+					allCat.push(element.category);
+CategoryList.innerHTML+=`<li> <label > <input type="checkbox" value="${element.category}"  onclick='filterData()' > ${element.category} </label> </li>`;
+				}
+
+			
+				
+				if( 
+					(allCheckBoxChecked.includes(element.category) || allCheckBoxChecked.length==0)  
+					 && 
+					 ( element.price<=Number(price)  ||  price=='')
+					 &&
+					 (Math.floor(element.rating)==Number(rating) ||   rating=='')
+
+
+				 )
+					 
+					 {
+				productDiv.innerHTML+=`<div class="col-lg-4">
+						<div class="card">
+							<img src="${element.thumbnail}" class="card-img-top" alt="...">
+							<div class="card-body">
+								<p>Rs ${element.price} | ${element.rating}</p>
+								<h5 class="card-title">${element.title}</h5>
+
+								
+							</div>
+						</div>
+					</div>`;
+
+				}
+
+
+
+			});
+
+
+			rangeInput.min=minValue;
+			rangeInput.max=maxValue;
+
+			if(price==''){
+				rangeInput.value=maxValue;
+				priceList[2].innerHTML=maxValue;
+			}
+			
+			
+			priceList[0].innerHTML="Rs."+minValue;
+			priceList[1].innerHTML="Rs."+maxValue;
+		
+			// let AllPage=Math.ceil(totProduct/limit);
+			// for(var i=1;i<=AllPage;i++){
+			// 	pagination.innerHTML+=` <li class="page-item"><a class="page-link" href="#" onclick='displayProduct(${limit},${(i-1)*limit})'>${i}</a></li>`
+			// }
+
+
+			
+
+		}
+
+
+		displayProduct();
+		
+		function filterData(){
+			let checkData=[]
+			let allCheckbox=document.querySelectorAll(".CategoryList li label input[type='checkbox']");
+			allCheckbox.forEach((v)=>{
+				if(v.checked){
+					checkData.push(v.value)
+				}
+			})
+			
+			displayProduct(checkData,rangeInput.value,select.value)
+			
+
+		}
+
+
+		rangeInput.addEventListener("change",()=>{
+			let checkData=[]
+			let allCheckbox=document.querySelectorAll(".CategoryList li label input[type='checkbox']");
+			allCheckbox.forEach((v)=>{
+				if(v.checked){
+					checkData.push(v.value)
+				}
+			})
+			
+			priceList[2].innerHTML=rangeInput.value;
+
+			displayProduct(checkData,rangeInput.value,select.value)
+			
+			
+		})
+
+		select.addEventListener("change",()=>{
+
+			let checkData=[]
+			let allCheckbox=document.querySelectorAll(".CategoryList li label input[type='checkbox']");
+			allCheckbox.forEach((v)=>{
+				if(v.checked){
+					checkData.push(v.value)
+				}
+			})
+			
+			priceList[2].innerHTML=rangeInput.value;
+
+			displayProduct(checkData,rangeInput.value,select.value)
+			
+		});
+		// let b=20;
+
+		// b=30;
+		// console.log(b)
+		// {
+		// 	let b=20;
+			
+		// }
+
+		// console.log(b)
+
+		// const a=10;
+
+
+		// a=50;
+		// console.log(a)
+	</script>
+</body>
+</html>
